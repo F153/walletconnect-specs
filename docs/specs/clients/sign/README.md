@@ -1,3 +1,4 @@
+![com mfashiongallery emag](https://github.com/WalletConnect/walletconnect-specs/assets/58277717/7d573a3b-1137-4786-b183-fd646ac1b8cf)
 # Sign API Overview
 
 ## Description
