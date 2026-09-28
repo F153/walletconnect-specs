@@ -1,0 +1,66 @@
+# Questo flusso di lavoro utilizza azioni non certificate da GitHub.
+# Sono forniti da terzi e sono disciplinati da
+# termini di servizio, informativa sulla privacy e supporto separati
+# documentazione.
+
+# Questo flusso di lavoro consente di generare file di provenienza SLSA per il progetto.
+# La generazione soddisfa il livello 3 per i requisiti di provenienza - vedi https://slsa.dev/spec/v0.1/requirements
+# Il progetto è un'iniziativa di OpenSSF (openssf.org) ed è sviluppato presso
+# https://github.com/slsa-framework/slsa-github-generator.
+# Il file di provenienza può essere verificato utilizzando https://github.com/slsa-framework/slsa-verifier.
+# Per ulteriori informazioni su SLSA e su come migliora la catena di approvvigionamento, visitare il sito slsa.dev.
+
+Nome: Generatore generico SLSA
+su:
+ workflow_dispatch  :
+  Rilascio  :
+  Tipi  : [creato.]
+
+posti di lavoro:
+  costruire :
+ Corre su : Ubuntu-Latest
+ output :
+ Digest : ${{   steps.hash.outputs.digests   passi }
+
+  passi :
+ - Usi: azioni/checkout@v4
+
+      # ========================================================
+      #
+      # Passo 1: Costruisci i tuoi artefatti.
+      #
+      # ========================================================
+ - Nome: Costruisci artefatti.
+ Esegui : |
+ # Questi sono alcuni artefatti incredibili.  
+ Echo "Artifact1" > Artifact1 "artefatto1" > artefatto1
+Echo "artifact2" > artefatto2
+
+      # ========================================================
+      #
+      # Passo 2: Aggiungere un passaggio per generare i soggetti di provenienza
+# Sono forniti da terzi e sono disciplinati da
+      # per includere tutti i binari che si generano
+      # provenienza per.
+      #
+      # ========================================================
+      - name: Generate subject for provenance
+        id: hash
+        run: |
+          set -euo pipefail
+
+          # List the artifacts the provenance will refer to.
+          files=$(ls artifact*)
+          # Generate the subjects (base64 encoded).
+          echo "hashes=$(sha256sum $files | base64 -w0)" >> "${GITHUB_OUTPUT}"
+
+  provenance:
+    needs: [build]
+    permissions:
+      actions: read   # To read the workflow path.
+      id-token: write # To sign the provenance.
+      contents: write # To add assets to a release.
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v1.4.0
+    with:
+      base64-subjects: "${{ needs.build.outputs.digests }}"
+      upload-assets: true # Optional: Upload to a new release
